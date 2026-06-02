@@ -32,7 +32,7 @@ function loadShippingAddress() {
 }
 
 // FIX: Hardcoded directly to your backend server port to bypass Live Server 405 blocks
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = "https://e-commerce-store-3-guwg.onrender.com";
 
 function isValidString(value) {
   return typeof value === "string" && value.trim().length > 0;
