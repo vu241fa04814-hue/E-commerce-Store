@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const https = require("https");
 const fs = require("fs");
+const path = require("path");
 const mongoose = require("mongoose");
 
 const connectDB = require("./config/db");
@@ -21,6 +22,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve frontend static files from the client folder
+app.use(express.static(path.join(__dirname, "../client")));
 
 // Connect to Database
 connectDB();
@@ -50,6 +54,11 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
+  // If request is not for API, serve the client index (single-page or static pages)
+  if (!req.path.startsWith('/api')) {
+    return res.sendFile(path.join(__dirname, '../client/index.html'));
+  }
+
   res.status(404).json({
     message: "Endpoint not found",
   });
