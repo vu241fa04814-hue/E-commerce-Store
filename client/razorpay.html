@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Razorpay Checkout</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="toast-container"></div>
+    <div id="payment-modal" class="modal">
+      <div class="modal-content">
+        <span id="payment-modal-close" class="close-btn">&times;</span>
+        <div id="payment-modal-status" class="modal-status">Success</div>
+        <h2 id="payment-modal-title">Payment completed</h2>
+        <p id="payment-modal-message">
+          Your payment has been completed successfully. Thank you for shopping
+          with us.
+        </p>
+        <div class="modal-actions">
+          <button id="payment-modal-ok" type="button">Continue</button>
+        </div>
+      </div>
+    </div>
+    <div class="checkout-page">
+      <div class="checkout-header">
+        <div>
+          <h1>Checkout</h1>
+          <p class="checkout-subtitle">
+            Secure payment powered by Razorpay. Choose your preferred payment
+            method
+          </p>
+        </div>
+        <div class="checkout-badge">Live-like Razorpay experience</div>
+      </div>
+
+      <div class="checkout-grid">
+        <section class="checkout-summary-card">
+          <h2>Order Summary</h2>
+          <div class="summary-small">
+            <p>Order ID: <strong id="order-id">#000000</strong></p>
+            <p>Est. delivery: <strong id="delivery-date">—</strong></p>
+          </div>
+          <div class="summary-row">
+            <span>Product</span>
+            <span id="product-name">—</span>
+          </div>
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="subtotal-amount">₹0</span>
+          </div>
+          <div class="summary-row">
+            <span>GST (5%)</span>
+            <span id="tax-amount">₹0</span>
+          </div>
+          <div class="summary-row">
+            <span>Delivery</span>
+            <span id="delivery-amount">₹50</span>
+          </div>
+          <div class="summary-row discount-row hidden">
+            <span>Discount</span>
+            <span id="discount-amount">-₹0</span>
+          </div>
+          <div class="summary-row total-row">
+            <strong>Total</strong>
+            <strong id="total-amount">₹0</strong>
+          </div>
+
+          <div class="shipping-card">
+            <h3>Shipping Details</h3>
+            <p id="shipping-line">—</p>
+            <p id="shipping-city">—</p>
+            <p id="shipping-phone">—</p>
+          </div>
+        </section>
+
+        <section class="checkout-action-card">
+          <h2>Payment Options</h2>
+          <div class="payment-methods">
+            <label class="payment-method">
+              <input type="radio" name="payment-method" value="card" checked />
+              Credit / Debit Card
+            </label>
+            <label class="payment-method">
+              <input type="radio" name="payment-method" value="upi" />
+              UPI
+            </label>
+            <label class="payment-method">
+              <input type="radio" name="payment-method" value="netbanking" />
+              Netbanking
+            </label>
+            <label class="payment-method">
+              <input type="radio" name="payment-method" value="wallet" />
+              Wallets
+            </label>
+            <label class="payment-method">
+              <input type="radio" name="payment-method" value="emi" />
+              EMI Options
+            </label>
+          </div>
+
+          <div class="payment-method-note" id="payment-method-note">
+            Select a method to see real payment instructions.
+          </div>
+
+          <div class="promo-section">
+            <label for="promo-code">Apply Coupon</label>
+            <div class="promo-row">
+              <input id="promo-code" placeholder="Enter coupon code" />
+              <button id="apply-promo" type="button">Apply</button>
+            </div>
+            <p class="promo-hint">
+              Valid codes: <strong>SAVE10</strong>, <strong>RAZORPAY5</strong>
+            </p>
+            <p id="promo-message" class="promo-message"></p>
+          </div>
+
+          <div class="payment-details-card">
+            <h3>Payment details</h3>
+            <p><strong>Payable Amount</strong></p>
+            <p class="payment-details-total">
+              ₹<span id="pay-button-label">0</span>
+            </p>
+            <p class="payment-note-small">
+              Razorpay supports cards, UPI, wallets, netbanking, and EMI.
+            </p>
+          </div>
+
+          <button id="pay-button">
+            Pay ₹<span id="pay-button-value">0</span>
+          </button>
+          <p class="switch-form">
+            <a href="address.html">← Back to Address</a>
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="razorpay.js"></script>
+  </body>
+</html>

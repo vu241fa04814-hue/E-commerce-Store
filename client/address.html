@@ -1,0 +1,221 @@
+<!-- Author: VIJAYKUMAR -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Address - vk's</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- The "../" tells the browser to go up one folder level -->
+    <!-- <a href="../payment.html">Continue to Payment</a> -->
+
+    <div class="login-container payment-box">
+      <h1>Address</h1>
+
+      <form id="address-form" onsubmit="continueToRazorpay(event)">
+        <input type="text" id="full-name" placeholder="Full name" required />
+
+        <select id="country" required>
+          <option value="">Select country</option>
+          <option value="India">India</option>
+          <option value="United States">United States</option>
+          <option value="United Kingdom">United Kingdom</option>
+          <option value="Canada">Canada</option>
+          <option value="Australia">Australia</option>
+          <option value="Germany">Germany</option>
+          <option value="France">France</option>
+          <option value="Japan">Japan</option>
+        </select>
+
+        <select id="state" required>
+          <option value="">Select state</option>
+        </select>
+
+        <select id="city" required>
+          <option value="">Select city</option>
+        </select>
+
+        <input
+          type="text"
+          id="address-line1"
+          placeholder="Address line"
+          required
+        />
+
+        <input type="text" id="postal" placeholder="Pin code" required />
+        <input type="tel" id="phone" placeholder="Phone number" required />
+
+        <div
+          style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"
+        >
+          <button type="button" onclick="continueToRazorpay(event)">
+            Continue to Razorpay
+          </button>
+          <a href="index.html" style="margin-left: 8px">← Back to Storefront</a>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // Country -> { state: [cities] } mapping
+      const COUNTRY_DATA = {
+        India: {
+          Maharashtra: ["Mumbai", "Pune", "Nagpur"],
+          Delhi: ["New Delhi"],
+          Karnataka: ["Bangalore", "Mysore"],
+          Telangana: ["Hyderabad"],
+          "Tamil Nadu": ["Chennai", "Coimbatore"],
+          "West Bengal": ["Kolkata", "Siliguri"],
+          Gujarat: ["Ahmedabad", "Surat"],
+          Rajasthan: ["Jaipur", "Udaipur"],
+          "Andhra Pradesh": ["Visakhapatnam", "Guntur", "Vijayawada"],
+        },
+        "United States": {
+          California: ["Los Angeles", "San Francisco", "San Diego"],
+          "New York": ["New York City", "Buffalo"],
+          Texas: ["Houston", "Dallas"],
+          Florida: ["Miami", "Orlando"],
+          Alabama: ["Birmingham"],
+          Washington: ["Seattle"],
+        },
+        Canada: {
+          Ontario: ["Toronto", "Ottawa"],
+          Quebec: ["Montreal"],
+          "British Columbia": ["Vancouver"],
+          Alberta: ["Calgary"],
+        },
+        Australia: {
+          "New South Wales": ["Sydney"],
+          Victoria: ["Melbourne"],
+          Queensland: ["Brisbane"],
+        },
+        "United Kingdom": {
+          England: ["London", "Manchester"],
+          Scotland: ["Edinburgh"],
+          Wales: ["Cardiff"],
+          "Northern Ireland": ["Belfast"],
+        },
+      };
+
+      function populateStates(country, selected) {
+        const stateSelect = document.getElementById("state");
+        stateSelect.innerHTML = '<option value="">Select State</option>';
+        const states = COUNTRY_DATA[country]
+          ? Object.keys(COUNTRY_DATA[country])
+          : [];
+        states.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s;
+          opt.textContent = s;
+          if (selected && selected === s) opt.selected = true;
+          stateSelect.appendChild(opt);
+        });
+        // reset cities
+        populateCities(country, selected ? selected : null, null);
+      }
+
+      function populateCities(country, state, selectedCity) {
+        const citySelect = document.getElementById("city");
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        if (!country || !state) return;
+        const cities =
+          (COUNTRY_DATA[country] && COUNTRY_DATA[country][state]) || [];
+        cities.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = c;
+          opt.textContent = c;
+          if (selectedCity && selectedCity === c) opt.selected = true;
+          citySelect.appendChild(opt);
+        });
+      }
+
+      // Pre-fill form if address exists and wire country->state change
+      window.onload = function () {
+        try {
+          const saved = localStorage.getItem("shippingAddress");
+          if (saved) {
+            const addr = JSON.parse(saved);
+            document.getElementById("full-name").value = addr.name || "";
+            document.getElementById("address-line1").value = addr.line1 || "";
+            // select country first so states can be populated
+            if (addr.country)
+              document.getElementById("country").value = addr.country;
+            populateStates(
+              addr.country || document.getElementById("country").value,
+              addr.state,
+            );
+            // populate cities based on the restored state and select the saved city
+            populateCities(
+              addr.country || document.getElementById("country").value,
+              addr.state,
+              addr.city,
+            );
+            document.getElementById("postal").value = addr.postal || "";
+            document.getElementById("phone").value = addr.phone || "";
+          }
+        } catch (e) {
+          console.warn("Could not load saved address", e);
+        }
+
+        // when country changes, update state list
+        const countrySelect = document.getElementById("country");
+        countrySelect.addEventListener("change", (e) => {
+          populateStates(e.target.value, null);
+        });
+
+        // when state changes, update city list
+        const stateSelect = document.getElementById("state");
+        stateSelect.addEventListener("change", (e) => {
+          const country = document.getElementById("country").value;
+          populateCities(country, e.target.value, null);
+        });
+      };
+
+      function saveShippingAndRedirect(target) {
+        const addr = {
+          name: document.getElementById("full-name").value.trim(),
+          line1: document.getElementById("address-line1").value.trim(),
+          city: document.getElementById("city").value.trim(),
+          state: document.getElementById("state").value.trim(),
+          postal: document.getElementById("postal").value.trim(),
+          country: document.getElementById("country").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+        };
+
+        if (
+          !addr.name ||
+          !addr.line1 ||
+          !addr.city ||
+          !addr.state ||
+          !addr.postal ||
+          !addr.country ||
+          !addr.phone
+        ) {
+          alert("Please fill all required address fields.");
+          return false;
+        }
+
+        localStorage.setItem("shippingAddress", JSON.stringify(addr));
+
+        const params = new URLSearchParams(window.location.search);
+        const item = params.get("item") || localStorage.getItem("selectedItem");
+        const price =
+          params.get("price") || localStorage.getItem("selectedPrice");
+        let targetUrl = target;
+        if (item) {
+          targetUrl += `?item=${encodeURIComponent(item)}&price=${encodeURIComponent(price || "")}`;
+        }
+
+        window.location.href = targetUrl;
+        return true;
+      }
+
+      function continueToRazorpay(e) {
+        e.preventDefault();
+        saveShippingAndRedirect("razorpay.html");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,374 @@
+<!-- Author: VIJAYKUMAR -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>welcome to vk's</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background: #f4f4f4;
+      }
+
+      /* HEADER */
+
+      header {
+        background: #222;
+        color: white;
+        padding: 15px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h1 {
+        font-size: 28px;
+      }
+
+      nav a {
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+      }
+
+      nav a:hover {
+        color: #00bcd4;
+      }
+
+      /* PRODUCTS */
+
+      .products {
+        width: 90%;
+        margin: 40px auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-8px);
+      }
+
+      .card img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+      }
+
+      .card-content {
+        padding: 20px;
+        text-align: center;
+      }
+
+      .card-content h2 {
+        margin-bottom: 10px;
+        font-size: 24px;
+      }
+
+      .price {
+        color: #28a745;
+        font-size: 22px;
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+
+      /* PRODUCT MATTER CONTAINER */
+      .details-matter {
+        display: none;
+        background: #f8f9fa;
+        border: 1px dashed #ccc;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #444;
+        text-align: left;
+        line-height: 1.5;
+      }
+
+      .details-matter ul {
+        padding-left: 20px;
+        margin-top: 5px;
+      }
+
+      /* VERTICAL BUTTON GROUP LAYOUT */
+
+      .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* BUTTON STYLES */
+
+      .btn {
+        border: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+        transition: 0.3s;
+        font-weight: bold;
+        width: 100%;
+      }
+
+      .btn-buy {
+        background: #ff9900;
+        color: white;
+      }
+
+      .btn-buy:hover {
+        background: #df8600;
+      }
+
+      .btn-details {
+        background: #6c757d;
+        color: white;
+      }
+
+      .btn-details:hover {
+        background: #5a6268;
+      }
+
+      .btn-cart {
+        background: #007bff;
+        color: white;
+      }
+
+      .btn-cart:hover {
+        background: #0056b3;
+      }
+
+      /* FOOTER */
+
+      footer {
+        background: #222;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+      }
+
+      /* RESPONSIVE HEADER */
+      @media (max-width: 600px) {
+        header {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+
+    <header>
+      <h1>welcome to vk's.</h1>
+
+      <nav>
+        <a href="#" id="cart-nav">Cart</a>
+      </nav>
+    </header>
+    <!-- PRODUCTS -->
+
+    <section class="products">
+      <!-- Laptop -->
+      <div class="card">
+        <img
+          src="https://dellstatic.luroconnect.com/media/catalog/product/cache/74ae05ef3745aec30d7f5a287debd7f5/c/d/cda16250cto04rino-1.jpg"
+          alt="Laptop"
+        />
+        <div class="card-content">
+          <h2>Laptop</h2>
+          <p class="price">₹55,000</p>
+
+          <!-- Specifications Matter -->
+          <div class="details-matter">
+            <strong>Product Features:</strong>
+            <ul>
+              <li>High-performance processor</li>
+              <li>Crisp high-definition display</li>
+              <li>Long-lasting battery capacity</li>
+            </ul>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-buy">Buy Now</button>
+            <button class="btn btn-details">Details</button>
+            <button class="btn btn-cart">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="card">
+        <img
+          src="https://m-cdn.phonearena.com/images/hub/372-wide-two_1200/Apple-iPhone-16-release-date-price-and-features.jpg"
+          alt="Phone"
+        />
+        <div class="card-content">
+          <h2>iPhone 17</h2>
+          <p class="price">₹75,000</p>
+
+          <!-- Specifications Matter -->
+          <div class="details-matter">
+            <strong>Product Features:</strong>
+            <ul>
+              <li>Next-generation camera system</li>
+              <li>Super Retina OLED screen</li>
+              <li>Advanced AI processing chip</li>
+            </ul>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-buy">Buy Now</button>
+            <button class="btn btn-details">Details</button>
+            <button class="btn btn-cart">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Watch -->
+      <div class="card">
+        <img
+          src="https://www.apple.com/assets-www/en_IN/watch1/og/watch_og_c64ec6c67.png"
+          alt="Watch"
+        />
+        <div class="card-content">
+          <h2>Apple Watch</h2>
+          <p class="price">₹5,000</p>
+
+          <!-- Specifications Matter -->
+          <div class="details-matter">
+            <strong>Product Features:</strong>
+            <ul>
+              <li>Real-time fitness tracking</li>
+              <li>Waterproof durable design</li>
+              <li>Smart notification sync</li>
+            </ul>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-buy">Buy Now</button>
+            <button class="btn btn-details">Details</button>
+            <button class="btn btn-cart">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Headphones -->
+      <div class="card">
+        <img
+          src="https://dfnqgzctqh74q.cloudfront.net/files/68f605fc50b0fb0002dd0278/beyerdynamic-DJKopfhoerer-Startseite-XS-50_50-Produktlaunch-DJ300ProXClub-EN.jpg"
+          alt="Headphones"
+        />
+        <div class="card-content">
+          <h2>Headphones</h2>
+          <p class="price">₹3,000</p>
+
+          <!-- Specifications Matter -->
+          <div class="details-matter">
+            <strong>Product Features:</strong>
+            <ul>
+              <li>Active environmental noise cancellation</li>
+              <li>Immersive high-fidelity audio output</li>
+              <li>Ergonomic cushioned fit configuration</li>
+            </ul>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-buy">Buy Now</button>
+            <button class="btn btn-details">Details</button>
+            <button class="btn btn-cart">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE JAVASCRIPT -->
+    <script>
+      // 1. BUY NOW REDIRECT FUNCTIONALITY (go to address first)
+      const buyButtons = document.querySelectorAll(".btn-buy");
+      buyButtons.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const card = event.target.closest(".card");
+          const productName = card.querySelector("h2").textContent;
+          const productPrice = card.querySelector(".price").textContent;
+          const targetAddressPage = "address.html";
+
+          // Persist selection so address/payment flow can read it reliably
+          try {
+            localStorage.setItem("selectedItem", productName);
+            localStorage.setItem("selectedPrice", productPrice);
+          } catch (e) {
+            console.warn("Could not save selected product to localStorage", e);
+          }
+
+          window.location.href = `${targetAddressPage}?item=${encodeURIComponent(productName)}&price=${encodeURIComponent(productPrice)}`;
+        });
+      });
+
+      // 2. ADD TO CART INTERACTIVE FUNCTIONALITY WITH POP-UP MESSAGE
+      let cartCount = 0;
+      const cartNav = document.getElementById("cart-nav");
+      const cartButtons = document.querySelectorAll(".btn-cart");
+
+      cartButtons.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          cartCount++;
+          cartNav.textContent = `Cart (${cartCount})`;
+
+          const card = event.target.closest(".card");
+          const productName = card.querySelector("h2").textContent;
+
+          // Alert notification pop-up message
+          alert(`"${productName}" successfully added to cart!`);
+
+          const originalText = button.textContent;
+          button.textContent = "✓ Added";
+          button.style.backgroundColor = "#28a745";
+          button.disabled = true;
+
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = "#007bff";
+            button.disabled = false;
+          }, 1000);
+        });
+      });
+
+      // 3. TOGGLE DETAILS INTERACTION
+      const detailsButtons = document.querySelectorAll(".btn-details");
+      detailsButtons.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const card = event.target.closest(".card");
+          const matterBox = card.querySelector(".details-matter");
+
+          if (matterBox.style.display === "block") {
+            matterBox.style.display = "none";
+            button.textContent = "Details";
+          } else {
+            matterBox.style.display = "block";
+            button.textContent = "Hide Details";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
