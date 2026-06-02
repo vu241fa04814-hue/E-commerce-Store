@@ -14,6 +14,33 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
+    if (
+      !shippingAddress ||
+      !shippingAddress.street ||
+      !shippingAddress.city ||
+      !shippingAddress.state ||
+      !shippingAddress.zipCode ||
+      !shippingAddress.country
+    ) {
+      return res.status(400).json({ message: "Shipping address is required" });
+    }
+
+    if (!paymentMethod) {
+      return res.status(400).json({ message: "Payment method is required" });
+    }
+
+    for (const item of cart.items) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).json({ message: "A cart product was not found" });
+      }
+      if (product.stock < item.quantity) {
+        return res
+          .status(400)
+          .json({ message: `${product.name} does not have enough stock` });
+      }
+    }
+
     const order = new Order({
       userId: req.userId,
       items: cart.items,
@@ -23,6 +50,12 @@ exports.createOrder = async (req, res) => {
     });
 
     await order.save();
+
+    for (const item of cart.items) {
+      await Product.findByIdAndUpdate(item.productId, {
+        $inc: { stock: -item.quantity },
+      });
+    }
 
     // Clear cart after order
     await Cart.findOneAndUpdate(

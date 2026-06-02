@@ -31,7 +31,17 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["credit_card", "debit_card", "paypal", "upi"],
+      enum: [
+        "card",
+        "credit_card",
+        "debit_card",
+        "paypal",
+        "upi",
+        "netbanking",
+        "wallet",
+        "emi",
+        "razorpay",
+      ],
       required: true,
     },
     paymentStatus: {

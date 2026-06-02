@@ -57,6 +57,16 @@ exports.verifyPayment = async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
       req.body;
 
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({
+        message: "Razorpay secret is not configured.",
+      });
+    }
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ message: "Incomplete payment payload" });
+    }
+
     const body = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)

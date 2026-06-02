@@ -25,7 +25,8 @@ exports.getCart = async (req, res) => {
 // Add to Cart
 exports.addToCart = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { productId } = req.body;
+    const quantity = Number(req.body.quantity);
 
     if (!productId || !quantity) {
       return res
@@ -33,9 +34,17 @@ exports.addToCart = async (req, res) => {
         .json({ message: "Product ID and quantity are required" });
     }
 
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return res.status(400).json({ message: "Quantity must be at least 1" });
+    }
+
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (product.stock < quantity) {
+      return res.status(400).json({ message: "Not enough stock available" });
     }
 
     let cart = await Cart.findOne({ userId: req.userId });
@@ -53,6 +62,9 @@ exports.addToCart = async (req, res) => {
     );
 
     if (existingItem) {
+      if (existingItem.quantity + quantity > product.stock) {
+        return res.status(400).json({ message: "Not enough stock available" });
+      }
       existingItem.quantity += quantity;
     } else {
       cart.items.push({
@@ -114,7 +126,12 @@ exports.removeFromCart = async (req, res) => {
 // Update Cart Item Quantity
 exports.updateCartItem = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { productId } = req.body;
+    const quantity = Number(req.body.quantity);
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return res.status(400).json({ message: "Quantity must be at least 1" });
+    }
 
     const cart = await Cart.findOne({ userId: req.userId });
 
@@ -128,6 +145,15 @@ exports.updateCartItem = async (req, res) => {
 
     if (!item) {
       return res.status(404).json({ message: "Item not in cart" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (quantity > product.stock) {
+      return res.status(400).json({ message: "Not enough stock available" });
     }
 
     item.quantity = quantity;

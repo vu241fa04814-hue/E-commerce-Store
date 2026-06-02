@@ -4,371 +4,311 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>welcome to vk's</title>
+    <title>VK Store</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="store-page">
+    <header class="store-topbar">
+      <div>
+        <h1>VK Store</h1>
+        <p id="welcome-user">Welcome</p>
+      </div>
+      <div class="store-actions">
+        <button id="cart-toggle" type="button">Cart <span id="cart-count">0</span></button>
+        <button id="logout-button" class="btn-secondary" type="button">Logout</button>
+      </div>
+    </header>
 
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
+    <main class="store-shell">
+      <section class="store-toolbar">
+        <input id="search-input" type="search" placeholder="Search products" />
+        <select id="category-filter">
+          <option value="">All categories</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Books">Books</option>
+          <option value="Home">Home</option>
+          <option value="Sports">Sports</option>
+          <option value="Other">Other</option>
+        </select>
+      </section>
+
+      <p id="store-message" class="store-message"></p>
+      <section id="product-grid" class="catalog-grid"></section>
+    </main>
+
+    <aside id="cart-panel" class="cart-panel">
+      <div class="cart-panel-header">
+        <h2>Your Cart</h2>
+        <button id="cart-close" type="button">&times;</button>
+      </div>
+      <div id="cart-items" class="cart-items"></div>
+      <div class="cart-footer">
+        <div class="cart-total">
+          <span>Total</span>
+          <strong id="cart-total">Rs. 0</strong>
+        </div>
+        <button id="checkout-button" type="button">Checkout</button>
+        <button id="clear-cart-button" class="btn-secondary" type="button">Clear Cart</button>
+      </div>
+    </aside>
+
+    <div id="cart-backdrop" class="cart-backdrop"></div>
+
+    <script>
+      const API_BASE_URL =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+          ? "http://localhost:5000"
+          : "https://e-commerce-store-3-guwg.onrender.com";
+
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      const productGrid = document.getElementById("product-grid");
+      const storeMessage = document.getElementById("store-message");
+      const cartPanel = document.getElementById("cart-panel");
+      const cartBackdrop = document.getElementById("cart-backdrop");
+
+      if (!token) {
+        window.location.replace("login.html");
       }
 
-      body {
-        background: #f4f4f4;
+      if (user && user.name) {
+        document.getElementById("welcome-user").textContent = `Welcome, ${user.name}`;
       }
 
-      /* HEADER */
-
-      header {
-        background: #222;
-        color: white;
-        padding: 15px 40px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      function authHeaders() {
+        return {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        };
       }
 
-      header h1 {
-        font-size: 28px;
+      function formatRupees(amount) {
+        return `Rs. ${Number(amount || 0).toLocaleString("en-IN")}`;
       }
 
-      nav a {
-        color: white;
-        text-decoration: none;
-        font-size: 18px;
+      function showMessage(message, isError = false) {
+        storeMessage.textContent = message;
+        storeMessage.style.color = isError ? "#c62828" : "#2e7d32";
       }
 
-      nav a:hover {
-        color: #00bcd4;
+      function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("selectedItem");
+        localStorage.removeItem("selectedPrice");
+        window.location.href = "login.html";
       }
 
-      /* PRODUCTS */
-
-      .products {
-        width: 90%;
-        margin: 40px auto;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
+      async function apiFetch(path, options = {}) {
+        const response = await fetch(`${API_BASE_URL}${path}`, options);
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          logout();
+          return data;
+        }
+        if (!response.ok) {
+          throw new Error(data.message || "Request failed");
+        }
+        return data;
       }
 
-      .card {
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        transition: 0.3s;
-      }
+      async function loadProducts() {
+        const search = document.getElementById("search-input").value.trim();
+        const category = document.getElementById("category-filter").value;
+        const params = new URLSearchParams();
+        if (search) params.set("search", search);
+        if (category) params.set("category", category);
 
-      .card:hover {
-        transform: translateY(-8px);
-      }
-
-      .card img {
-        width: 100%;
-        height: 220px;
-        object-fit: cover;
-      }
-
-      .card-content {
-        padding: 20px;
-        text-align: center;
-      }
-
-      .card-content h2 {
-        margin-bottom: 10px;
-        font-size: 24px;
-      }
-
-      .price {
-        color: #28a745;
-        font-size: 22px;
-        margin-bottom: 15px;
-        font-weight: bold;
-      }
-
-      /* PRODUCT MATTER CONTAINER */
-      .details-matter {
-        display: none;
-        background: #f8f9fa;
-        border: 1px dashed #ccc;
-        border-radius: 6px;
-        padding: 12px;
-        margin-bottom: 15px;
-        font-size: 14px;
-        color: #444;
-        text-align: left;
-        line-height: 1.5;
-      }
-
-      .details-matter ul {
-        padding-left: 20px;
-        margin-top: 5px;
-      }
-
-      /* VERTICAL BUTTON GROUP LAYOUT */
-
-      .btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      /* BUTTON STYLES */
-
-      .btn {
-        border: none;
-        padding: 12px 20px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 15px;
-        transition: 0.3s;
-        font-weight: bold;
-        width: 100%;
-      }
-
-      .btn-buy {
-        background: #ff9900;
-        color: white;
-      }
-
-      .btn-buy:hover {
-        background: #df8600;
-      }
-
-      .btn-details {
-        background: #6c757d;
-        color: white;
-      }
-
-      .btn-details:hover {
-        background: #5a6268;
-      }
-
-      .btn-cart {
-        background: #007bff;
-        color: white;
-      }
-
-      .btn-cart:hover {
-        background: #0056b3;
-      }
-
-      /* FOOTER */
-
-      footer {
-        background: #222;
-        color: white;
-        text-align: center;
-        padding: 20px;
-        margin-top: 40px;
-      }
-
-      /* RESPONSIVE HEADER */
-      @media (max-width: 600px) {
-        header {
-          flex-direction: column;
-          gap: 15px;
-          text-align: center;
+        productGrid.innerHTML = '<p class="loading-text">Loading products...</p>';
+        try {
+          const data = await apiFetch(`/api/products?${params.toString()}`);
+          renderProducts(data.products || []);
+        } catch (error) {
+          productGrid.innerHTML = "";
+          showMessage(error.message, true);
         }
       }
-    </style>
-  </head>
-  <body>
-    <!-- HEADER -->
 
-    <header>
-      <h1>welcome to vk's.</h1>
+      function renderProducts(products) {
+        if (!products.length) {
+          productGrid.innerHTML = '<p class="loading-text">No products found.</p>';
+          return;
+        }
 
-      <nav>
-        <a href="#" id="cart-nav">Cart</a>
-      </nav>
-    </header>
-    <!-- PRODUCTS -->
+        productGrid.innerHTML = products
+          .map((product) => {
+            const finalPrice = Math.round(
+              product.price - product.price * ((product.discount || 0) / 100),
+            );
+            return `
+              <article class="product-tile">
+                <div class="product-image-wrap">
+                  <img src="${product.image}" alt="${product.name}" />
+                </div>
+                <div class="product-info">
+                  <div class="product-meta">
+                    <span>${product.category}</span>
+                    <span>${product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</span>
+                  </div>
+                  <h2>${product.name}</h2>
+                  <p>${product.description}</p>
+                  <div class="product-price-row">
+                    <strong>${formatRupees(finalPrice)}</strong>
+                    ${
+                      product.discount
+                        ? `<span class="old-price">${formatRupees(product.price)}</span>`
+                        : ""
+                    }
+                  </div>
+                  <div class="product-buttons">
+                    <button type="button" onclick="buyNow('${product._id}')" ${product.stock < 1 ? "disabled" : ""}>Buy Now</button>
+                    <button class="btn-secondary" type="button" onclick="addToCart('${product._id}')" ${product.stock < 1 ? "disabled" : ""}>Add to Cart</button>
+                  </div>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
 
-    <section class="products">
-      <!-- Laptop -->
-      <div class="card">
-        <img
-          src="https://dellstatic.luroconnect.com/media/catalog/product/cache/74ae05ef3745aec30d7f5a287debd7f5/c/d/cda16250cto04rino-1.jpg"
-          alt="Laptop"
-        />
-        <div class="card-content">
-          <h2>Laptop</h2>
-          <p class="price">₹55,000</p>
+      async function addToCart(productId, quiet = false) {
+        try {
+          await apiFetch("/api/cart/add", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ productId, quantity: 1 }),
+          });
+          await loadCart();
+          if (!quiet) showMessage("Added to cart.");
+        } catch (error) {
+          showMessage(error.message, true);
+        }
+      }
 
-          <!-- Specifications Matter -->
-          <div class="details-matter">
-            <strong>Product Features:</strong>
-            <ul>
-              <li>High-performance processor</li>
-              <li>Crisp high-definition display</li>
-              <li>Long-lasting battery capacity</li>
-            </ul>
-          </div>
+      async function buyNow(productId) {
+        await addToCart(productId, true);
+        window.location.href = "address.html";
+      }
 
-          <div class="btn-group">
-            <button class="btn btn-buy">Buy Now</button>
-            <button class="btn btn-details">Details</button>
-            <button class="btn btn-cart">Add to Cart</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Phone -->
-      <div class="card">
-        <img
-          src="https://m-cdn.phonearena.com/images/hub/372-wide-two_1200/Apple-iPhone-16-release-date-price-and-features.jpg"
-          alt="Phone"
-        />
-        <div class="card-content">
-          <h2>iPhone 17</h2>
-          <p class="price">₹75,000</p>
-
-          <!-- Specifications Matter -->
-          <div class="details-matter">
-            <strong>Product Features:</strong>
-            <ul>
-              <li>Next-generation camera system</li>
-              <li>Super Retina OLED screen</li>
-              <li>Advanced AI processing chip</li>
-            </ul>
-          </div>
-
-          <div class="btn-group">
-            <button class="btn btn-buy">Buy Now</button>
-            <button class="btn btn-details">Details</button>
-            <button class="btn btn-cart">Add to Cart</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Watch -->
-      <div class="card">
-        <img
-          src="https://www.apple.com/assets-www/en_IN/watch1/og/watch_og_c64ec6c67.png"
-          alt="Watch"
-        />
-        <div class="card-content">
-          <h2>Apple Watch</h2>
-          <p class="price">₹5,000</p>
-
-          <!-- Specifications Matter -->
-          <div class="details-matter">
-            <strong>Product Features:</strong>
-            <ul>
-              <li>Real-time fitness tracking</li>
-              <li>Waterproof durable design</li>
-              <li>Smart notification sync</li>
-            </ul>
-          </div>
-
-          <div class="btn-group">
-            <button class="btn btn-buy">Buy Now</button>
-            <button class="btn btn-details">Details</button>
-            <button class="btn btn-cart">Add to Cart</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Headphones -->
-      <div class="card">
-        <img
-          src="https://dfnqgzctqh74q.cloudfront.net/files/68f605fc50b0fb0002dd0278/beyerdynamic-DJKopfhoerer-Startseite-XS-50_50-Produktlaunch-DJ300ProXClub-EN.jpg"
-          alt="Headphones"
-        />
-        <div class="card-content">
-          <h2>Headphones</h2>
-          <p class="price">₹3,000</p>
-
-          <!-- Specifications Matter -->
-          <div class="details-matter">
-            <strong>Product Features:</strong>
-            <ul>
-              <li>Active environmental noise cancellation</li>
-              <li>Immersive high-fidelity audio output</li>
-              <li>Ergonomic cushioned fit configuration</li>
-            </ul>
-          </div>
-
-          <div class="btn-group">
-            <button class="btn btn-buy">Buy Now</button>
-            <button class="btn btn-details">Details</button>
-            <button class="btn btn-cart">Add to Cart</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- INTERACTIVE JAVASCRIPT -->
-    <script>
-      // 1. BUY NOW REDIRECT FUNCTIONALITY (go to address first)
-      const buyButtons = document.querySelectorAll(".btn-buy");
-      buyButtons.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          const card = event.target.closest(".card");
-          const productName = card.querySelector("h2").textContent;
-          const productPrice = card.querySelector(".price").textContent;
-          const targetAddressPage = "address.html";
-
-          // Persist selection so address/payment flow can read it reliably
-          try {
-            localStorage.setItem("selectedItem", productName);
-            localStorage.setItem("selectedPrice", productPrice);
-          } catch (e) {
-            console.warn("Could not save selected product to localStorage", e);
+      async function loadCart() {
+        try {
+          const data = await apiFetch("/api/cart", {
+            headers: authHeaders(),
+          });
+          renderCart(data.cart);
+        } catch (error) {
+          if (error.message === "Cart not found") {
+            renderCart({ items: [], totalPrice: 0 });
+            return;
           }
+          showMessage(error.message, true);
+        }
+      }
 
-          window.location.href = `${targetAddressPage}?item=${encodeURIComponent(productName)}&price=${encodeURIComponent(productPrice)}`;
-        });
+      function renderCart(cart) {
+        const items = cart && cart.items ? cart.items : [];
+        document.getElementById("cart-count").textContent = items.reduce(
+          (total, item) => total + item.quantity,
+          0,
+        );
+        document.getElementById("cart-total").textContent = formatRupees(
+          cart ? cart.totalPrice : 0,
+        );
+
+        const cartItems = document.getElementById("cart-items");
+        if (!items.length) {
+          cartItems.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
+          return;
+        }
+
+        cartItems.innerHTML = items
+          .map((item) => {
+            const product = item.productId || {};
+            return `
+              <div class="cart-line">
+                <img src="${product.image || ""}" alt="${product.name || "Product"}" />
+                <div>
+                  <strong>${product.name || "Product"}</strong>
+                  <span>${formatRupees(item.price)} x ${item.quantity}</span>
+                  <div class="cart-line-actions">
+                    <button type="button" onclick="updateCartItem('${product._id}', ${item.quantity - 1})">-</button>
+                    <button type="button" onclick="updateCartItem('${product._id}', ${item.quantity + 1})">+</button>
+                    <button type="button" onclick="removeCartItem('${product._id}')">Remove</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      async function updateCartItem(productId, quantity) {
+        if (quantity < 1) {
+          await removeCartItem(productId);
+          return;
+        }
+        try {
+          await apiFetch("/api/cart/update", {
+            method: "PUT",
+            headers: authHeaders(),
+            body: JSON.stringify({ productId, quantity }),
+          });
+          await loadCart();
+        } catch (error) {
+          showMessage(error.message, true);
+        }
+      }
+
+      async function removeCartItem(productId) {
+        try {
+          await apiFetch("/api/cart/remove", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ productId }),
+          });
+          await loadCart();
+        } catch (error) {
+          showMessage(error.message, true);
+        }
+      }
+
+      async function clearCart() {
+        try {
+          await apiFetch("/api/cart/clear", {
+            method: "DELETE",
+            headers: authHeaders(),
+          });
+          await loadCart();
+        } catch (error) {
+          showMessage(error.message, true);
+        }
+      }
+
+      function openCart() {
+        cartPanel.classList.add("open");
+        cartBackdrop.classList.add("open");
+      }
+
+      function closeCart() {
+        cartPanel.classList.remove("open");
+        cartBackdrop.classList.remove("open");
+      }
+
+      document.getElementById("logout-button").addEventListener("click", logout);
+      document.getElementById("cart-toggle").addEventListener("click", openCart);
+      document.getElementById("cart-close").addEventListener("click", closeCart);
+      cartBackdrop.addEventListener("click", closeCart);
+      document.getElementById("checkout-button").addEventListener("click", () => {
+        window.location.href = "address.html";
       });
+      document.getElementById("clear-cart-button").addEventListener("click", clearCart);
+      document.getElementById("search-input").addEventListener("input", loadProducts);
+      document.getElementById("category-filter").addEventListener("change", loadProducts);
 
-      // 2. ADD TO CART INTERACTIVE FUNCTIONALITY WITH POP-UP MESSAGE
-      let cartCount = 0;
-      const cartNav = document.getElementById("cart-nav");
-      const cartButtons = document.querySelectorAll(".btn-cart");
-
-      cartButtons.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          cartCount++;
-          cartNav.textContent = `Cart (${cartCount})`;
-
-          const card = event.target.closest(".card");
-          const productName = card.querySelector("h2").textContent;
-
-          // Alert notification pop-up message
-          alert(`"${productName}" successfully added to cart!`);
-
-          const originalText = button.textContent;
-          button.textContent = "✓ Added";
-          button.style.backgroundColor = "#28a745";
-          button.disabled = true;
-
-          setTimeout(() => {
-            button.textContent = originalText;
-            button.style.backgroundColor = "#007bff";
-            button.disabled = false;
-          }, 1000);
-        });
-      });
-
-      // 3. TOGGLE DETAILS INTERACTION
-      const detailsButtons = document.querySelectorAll(".btn-details");
-      detailsButtons.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          const card = event.target.closest(".card");
-          const matterBox = card.querySelector(".details-matter");
-
-          if (matterBox.style.display === "block") {
-            matterBox.style.display = "none";
-            button.textContent = "Details";
-          } else {
-            matterBox.style.display = "block";
-            button.textContent = "Hide Details";
-          }
-        });
-      });
+      loadProducts();
+      loadCart();
     </script>
   </body>
 </html>
