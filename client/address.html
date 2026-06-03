@@ -204,8 +204,11 @@
         const price =
           params.get("price") || localStorage.getItem("selectedPrice");
         let targetUrl = target;
-        if (item) {
-          targetUrl += `?item=${encodeURIComponent(item)}&price=${encodeURIComponent(price || "")}`;
+        if (item || price) {
+          const nextParams = new URLSearchParams();
+          if (item) nextParams.set("item", item);
+          if (price) nextParams.set("price", price);
+          targetUrl += `?${nextParams.toString()}`;
         }
 
         window.location.href = targetUrl;

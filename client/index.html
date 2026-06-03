@@ -68,6 +68,7 @@
       const storeMessage = document.getElementById("store-message");
       const cartPanel = document.getElementById("cart-panel");
       const cartBackdrop = document.getElementById("cart-backdrop");
+      let currentProducts = [];
 
       if (!token) {
         window.location.replace("login.html");
@@ -132,6 +133,8 @@
       }
 
       function renderProducts(products) {
+        currentProducts = products;
+
         if (!products.length) {
           productGrid.innerHTML = '<p class="loading-text">No products found.</p>';
           return;
@@ -188,7 +191,15 @@
       }
 
       async function buyNow(productId) {
+        const product = currentProducts.find((item) => item._id === productId);
         await addToCart(productId, true);
+        if (product) {
+          const finalPrice = Math.round(
+            product.price - product.price * ((product.discount || 0) / 100),
+          );
+          localStorage.setItem("selectedItem", product.name);
+          localStorage.setItem("selectedPrice", formatRupees(finalPrice));
+        }
         window.location.href = "address.html";
       }
 
@@ -209,13 +220,20 @@
 
       function renderCart(cart) {
         const items = cart && cart.items ? cart.items : [];
+        const totalPrice = cart ? cart.totalPrice : 0;
         document.getElementById("cart-count").textContent = items.reduce(
           (total, item) => total + item.quantity,
           0,
         );
-        document.getElementById("cart-total").textContent = formatRupees(
-          cart ? cart.totalPrice : 0,
-        );
+        document.getElementById("cart-total").textContent = formatRupees(totalPrice);
+
+        if (items.length) {
+          localStorage.setItem("selectedItem", "Cart Order");
+          localStorage.setItem("selectedPrice", formatRupees(totalPrice));
+        } else {
+          localStorage.removeItem("selectedItem");
+          localStorage.removeItem("selectedPrice");
+        }
 
         const cartItems = document.getElementById("cart-items");
         if (!items.length) {
@@ -301,6 +319,9 @@
       document.getElementById("cart-close").addEventListener("click", closeCart);
       cartBackdrop.addEventListener("click", closeCart);
       document.getElementById("checkout-button").addEventListener("click", () => {
+        const cartTotal = document.getElementById("cart-total").textContent;
+        localStorage.setItem("selectedItem", "Cart Order");
+        localStorage.setItem("selectedPrice", cartTotal);
         window.location.href = "address.html";
       });
       document.getElementById("clear-cart-button").addEventListener("click", clearCart);
